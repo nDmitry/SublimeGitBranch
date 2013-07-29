@@ -28,9 +28,7 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
     incoming_count = 0
     outgoing_count = 0
     git_label = 'Git'
-
     git_log_re = r'^commit \S+'
-
     running = False
     queued = False
 
@@ -43,11 +41,9 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
         self._run()
 
     def _run(self):
-        # print('Running')
         self.reset()
         cwd = self.getcwd()
         if not cwd:
-            # print('no cwd')
             return
         os.chdir(self.getcwd())
         self.fetch_branch()
@@ -55,7 +51,7 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
     def set_branch(self, branch_name):
         """Sets the branch name and fires off the second group of fetchers."""
         if not self.vcs:
-            print('no VCS!!!')
+            print('There is no Git!')
             # Stop the rest of the plugin execution
             return
 
@@ -74,13 +70,10 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
         """Fetches the branch name, and, in the process, figures out which VCS we're in."""
 
         def git_callback(output):
-            # print('fetch_branch git_callback')
             if output:
                 self.vcs = self.git_label
-                # print('setting git branch to {}'.format(output))
                 self.set_branch(output)
             else:
-                # print('fetch_branch git_callback: no ouput')
                 pass
 
         CommandRunner('git rev-parse --abbrev-ref HEAD', git_callback)
@@ -117,10 +110,8 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
             CommandRunner(command, git_callback)
 
     def fetch_outgoing(self):
-        # print('fetch_outgoing')
 
         def git_callback(output):
-            # print('git_callback')
             if not output:
                 self.outgoing_count = 0
             else:
@@ -165,7 +156,6 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
         self.modified_count = '?'
         self.incoming_count = '?'
         self.outgoing_count = '?'
-        # self.update_status()
 
     def in_git(self):
         return self.vcs == self.git_label
