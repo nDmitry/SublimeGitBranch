@@ -22,7 +22,7 @@ class BranchStatusResetCommand(sublime_plugin.TextCommand):
 
 class BranchStatusCommand(sublime_plugin.TextCommand):
     last_full_run = None
-    vcs = None
+    is_git = False
     branch = None
     modified_count = 0
     incoming_count = 0
@@ -50,7 +50,7 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
 
     def set_branch(self, branch_name):
         """Sets the branch name and fires off the second group of fetchers."""
-        if not self.vcs:
+        if not self.is_git:
             print('There is no Git!')
             # Stop the rest of the plugin execution
             return
@@ -59,7 +59,7 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
 
         self.fetch_modified_count()
 
-        if self.been_awhile() and self.in_git():
+        if self.been_awhile():
             # Run this stuff only every so often
             CommandRunner('git fetch')
 
@@ -69,21 +69,17 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
     def fetch_branch(self):
         """Fetches the branch name, and, in the process, figures out which VCS we're in."""
 
-        def git_callback(output):
+        def callback(output):
             if output:
-                self.vcs = self.git_label
+                self.is_git = True
                 self.set_branch(output)
             else:
                 pass
 
-        CommandRunner('git rev-parse --abbrev-ref HEAD', git_callback)
+        CommandRunner('git rev-parse --abbrev-ref HEAD', callback)
 
     def fetch_modified_count(self):
-        pattern = None
-        if self.in_git():
-            pattern = r'\s?M \S+'
-        else:
-            pattern = r'^M \S+'
+        pattern = r'\s?M \S+'
 
         def callback(output):
             if not output:
@@ -92,11 +88,10 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
             self.modified_count = len(re.findall(pattern, output))
             self.update_status()
 
-        if self.in_git():
-            CommandRunner('git status --porcelain', callback)
+        CommandRunner('git status --porcelain', callback)
 
     def fetch_incoming(self):
-        def git_callback(output):
+        def callback(output):
             if not output:
                 self.incoming_count = 0
             else:
@@ -105,13 +100,12 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
 
             self.update_status()
 
-        if self.in_git():
-            command = 'git whatchanged ..origin/{}'.format(self.branch)
-            CommandRunner(command, git_callback)
+        command = 'git whatchanged ..origin/{}'.format(self.branch)
+        CommandRunner(command, callback)
 
     def fetch_outgoing(self):
 
-        def git_callback(output):
+        def callback(output):
             if not output:
                 self.outgoing_count = 0
             else:
@@ -121,21 +115,20 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
             self.update_status()
             self.all_done()
 
-        if self.in_git():
-            command = 'git whatchanged origin/{}..'.format(self.branch)
-            CommandRunner(command, git_callback)
+        command = 'git whatchanged origin/{}..'.format(self.branch)
+        CommandRunner(command, callback)
 
     def all_done(self):
         self.running = False
 
     def update_status(self):
-        if not self.vcs:
+        if not self.is_git:
             # We're not in a repo. Clear the status bar
             self.view.set_status('vcs_branch', '')
             return
 
         s = "{} {} ({}Δ {}↓ {}↑)".format(
-            self.vcs,
+            self.git_label,
             self.branch,
             self.modified_count,
             self.incoming_count,
@@ -151,14 +144,11 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
             return None
 
     def reset(self):
-        self.vcs = None
+        self.is_git = False
         self.branch = '?'
         self.modified_count = '?'
         self.incoming_count = '?'
         self.outgoing_count = '?'
-
-    def in_git(self):
-        return self.vcs == self.git_label
 
     def been_awhile(self):
         if not self.last_full_run:
