@@ -143,7 +143,7 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
             self.view.set_status('vcs_branch', '')
             return
 
-        s = "On {} {} ({}Δ {}↓ {}↑)".format(
+        s = "{} {} ({}Δ {}↓ {}↑)".format(
             self.vcs,
             self.branch,
             self.modified_count,
