@@ -8,6 +8,7 @@ from .helpers import CommandRunner
 
 
 class BranchStatusListener(sublime_plugin.EventListener):
+
     def on_activated_async(self, view):
         view.run_command('branch_status')
 
@@ -16,6 +17,7 @@ class BranchStatusListener(sublime_plugin.EventListener):
 
 
 class BranchStatusResetCommand(sublime_plugin.TextCommand):
+
     def run(self, view):
         self.view.set_status('git_branch', '(Git Branch: waiting for save)')
 
@@ -95,7 +97,8 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
             if not output:
                 self.incoming_count = 0
             else:
-                matches = re.findall(self.git_log_re, output, flags=re.MULTILINE)
+                matches = re.findall(
+                    self.git_log_re, output, flags=re.MULTILINE)
                 self.incoming_count = len(matches)
 
             self.update_status()
@@ -109,7 +112,8 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
             if not output:
                 self.outgoing_count = 0
             else:
-                matches = re.findall(self.git_log_re, output, flags=re.MULTILINE)
+                matches = re.findall(
+                    self.git_log_re, output, flags=re.MULTILINE)
                 self.outgoing_count = len(matches)
 
             self.update_status()
