@@ -3,7 +3,6 @@ import subprocess
 
 
 class CommandRunner(threading.Thread):
-
     def __init__(self, command_str, callback=None, name=None):
         threading.Thread.__init__(self)
         self.callback = callback

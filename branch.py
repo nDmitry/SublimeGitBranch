@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import os
 import subprocess
 import threading
@@ -8,7 +10,6 @@ from .helpers import CommandRunner
 
 
 class BranchStatusListener(sublime_plugin.EventListener):
-
     def on_activated_async(self, view):
         view.run_command('branch_status')
 
@@ -17,8 +18,7 @@ class BranchStatusListener(sublime_plugin.EventListener):
 
 
 class BranchStatusResetCommand(sublime_plugin.TextCommand):
-
-    def run(self, view):
+    def run(self):
         self.view.set_status('git_branch', '(Git Branch: waiting for save)')
 
 
@@ -131,7 +131,7 @@ class BranchStatusCommand(sublime_plugin.TextCommand):
             self.view.set_status('vcs_branch', '')
             return
 
-        s = "{} {} ({}Δ {}↓ {}↑)".format(
+        s = '{} {} ({}Δ {}↓ {}↑)'.format(
             self.git_label,
             self.branch,
             self.modified_count,
